@@ -5,11 +5,13 @@ import com.codeday.productivity.entity.User;
 import com.codeday.productivity.service.GoalService;
 import com.codeday.productivity.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/users/{userId}/goals")
@@ -51,5 +53,23 @@ public class GoalController {
         return goalService.getAllGoalsByUserAndStartDate(user, startDate);
     }
 
-}
+    // returns null if id does not exist in the database
+    @GetMapping("/{id}")
+    public Optional<Goal> getGoalById(@PathVariable int id) {
+        return goalService.getGoal(id);
+    }
 
+    // throws error status 404 if goal id does not exist in the database
+    @PutMapping("/{id}")
+    public Optional<Goal> updateGoalById(@PathVariable int id, @RequestBody Goal goal) {
+        return Optional.ofNullable(goalService.updateGoal(id, goal));
+    }
+
+    // returns null if id does not exist in the database
+    @DeleteMapping("{id}")
+    public Optional<Goal> deleteGoal(@PathVariable int id) {
+        Optional<Goal> goal = goalService.getGoal(id);
+        goalService.deleteGoal(id);
+        return goal;
+    }
+}
