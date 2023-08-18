@@ -5,7 +5,6 @@ import com.codeday.productivity.entity.User;
 import com.codeday.productivity.service.GoalService;
 import com.codeday.productivity.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
