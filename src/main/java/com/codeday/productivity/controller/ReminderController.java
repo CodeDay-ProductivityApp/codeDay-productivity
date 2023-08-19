@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/users/{userId}/reminder")
+@RequestMapping("/v1/users/{userId}/reminders")
 public class ReminderController {
 
     private final ReminderService reminderService;
