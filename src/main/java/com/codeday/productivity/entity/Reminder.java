@@ -1,5 +1,6 @@
 package com.codeday.productivity.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +17,10 @@ public class Reminder {
     @GeneratedValue
     private Long id;
 
-    // relationship to User
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonBackReference(value="user-reminder")
+    private User user;
 
     @Column(nullable = false)
     private String message;
