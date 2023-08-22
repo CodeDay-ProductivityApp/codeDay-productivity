@@ -1,6 +1,8 @@
 package com.codeday.productivity.service;
 
+import com.codeday.productivity.entity.Goal;
 import com.codeday.productivity.entity.Task;
+import com.codeday.productivity.entity.User;
 import com.codeday.productivity.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,16 @@ public class TaskService {
         return taskOptional.orElse(null);
     }
 
+    //get tasks by goal
+    public List<Task> getAllTasksByGoal(Goal goal) {
+        return taskRepository.findByGoal(goal);
+    }
+
+    // save a task for a user and goal
+    public Task saveTaskForUserAndGoal(Goal goal, Task task) {
+        task.setGoal(goal);
+        return taskRepository.save(task);
+    }
 
     // Update a task by its ID
     public Task updateTask(Long taskId, Task taskData) {

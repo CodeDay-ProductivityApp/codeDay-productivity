@@ -1,34 +1,46 @@
 package com.codeday.productivity.controller;
 
+import com.codeday.productivity.entity.Goal;
 import com.codeday.productivity.entity.Task;
+import com.codeday.productivity.entity.User;
+import com.codeday.productivity.service.GoalService;
 import com.codeday.productivity.service.TaskService;
+import com.codeday.productivity.service.UserService;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/v1/users/{userId}/goals/{goalId}/tasks")
 public class TaskController {
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(TaskController.class);
+
+    private final TaskService taskService;
+    private final UserService userService;
+    private final GoalService goalService;
 
     @Autowired
-    private TaskService taskService;
-
-    // Get all tasks
-    @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.getAllTasks();
-        return ResponseEntity.ok(tasks);
+    public TaskController(TaskService taskService, UserService userService, GoalService goalService) {
+        this.taskService = taskService;
+        this.userService = userService;
+        this.goalService = goalService;
     }
 
-    // Create a new task
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task createdTask = taskService.createTask(task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+    public Task createTask( @PathVariable Integer goalId, @RequestBody Task task) {
+        logger.info("Creating task for goal with id: " + goalId);
+        Goal goal = goalService.getGoalById(goalId);
+        task.setGoal(goal);
+        return taskService.saveTaskForUserAndGoal(goal, task);
     }
+
+
 
     // Get task by id
     @GetMapping("/{taskId}")
@@ -39,6 +51,15 @@ public class TaskController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // Get task by goal id
+    @GetMapping
+    public List<Task> getAllTasksByGoal(@PathVariable int userId, @PathVariable int goalId) {
+        User user = userService.getUserById(userId);
+        Goal goal = goalService.getGoalById(goalId);
+        verifyUserGoalAssociation(user, goal);
+        return taskService.getAllTasksByGoal(goal);
     }
 
     // Update task by id
@@ -61,6 +82,18 @@ public class TaskController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    private void verifyUserGoalAssociation(User user, Goal goal) {
+        if (goal.getUser().getId() != user.getId()) {
+            throw new RuntimeException("Goal does not belong to the given user");
+        }
+    }
+
+    @GetMapping("/test")
+    public String testEndpoint() {
+        return "Test works!";
+    }
+
 }
 
 
