@@ -2,7 +2,6 @@ package com.codeday.productivity.service;
 
 import com.codeday.productivity.entity.Goal;
 import com.codeday.productivity.entity.Task;
-import com.codeday.productivity.entity.User;
 import com.codeday.productivity.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,17 +1,15 @@
 package com.codeday.productivity.entity;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "GOAL_TBL")
@@ -41,14 +39,19 @@ public class Goal {
     private String isComplete;
 
     @Column(name = "progress")
-    private int progress;
+    private Double progress;
 
     @Column(name = "last_updated", columnDefinition = "TIMESTAMP")
     private Instant lastUpdated;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonBackReference(value="user-goal")
     private User user;
+
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value="goal-task")
+    private List<Task> tasks = new ArrayList<>();
 }
 
 
