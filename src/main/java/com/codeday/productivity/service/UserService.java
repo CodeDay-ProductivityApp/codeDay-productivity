@@ -6,8 +6,13 @@ import com.codeday.productivity.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.codeday.productivity.entity.User;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The UserService class is a Spring Service component responsible for business logic
@@ -28,7 +33,9 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private static final Logger LOGGER = LogManager.getLogger(UserService.class);
     private final UserRepository repository;
+    private static final String DEACTIVATED_STATUS = "N";
 
     /**
      * Constructs a UserService with the specified UserRepository.
@@ -48,6 +55,7 @@ public class UserService {
      * @throws UserAlreadyExistsException If a user with the same email or ID already exists.
      */
     public User saveUser(User user) {
+        LOGGER.info("Attempting to save new user with email: {}", user.getEmail());
         Optional<User> existingUserByEmail = repository.findByEmail(user.getEmail());
 
         if (existingUserByEmail.isPresent()) {
@@ -56,7 +64,7 @@ public class UserService {
 
         Optional<User> existingUserById = repository.findById(user.getId());
         if (existingUserById.isPresent()) {
-            throw new UserNotFoundException("User with ID " + user.getId() + " already exists.");
+            throw new UserAlreadyExistsException("User with ID " + user.getId() + " already exists.");
         }
 
         return repository.save(user);
@@ -69,8 +77,38 @@ public class UserService {
      * @return The list of saved User entities.
      */
     public List<User> saveUsers(List<User> users) {
-        // Your logic to check for duplicates, etc., could go here
-        return repository.saveAll(users);
+        LOGGER.info("Attempting to save a list of users");
+
+        List<User> savedUsers = new ArrayList<>();
+        List<String> duplicateUsers = new ArrayList<>();
+
+        for (User user : users) {
+            Optional<User> existingUserByEmail = repository.findByEmail(user.getEmail());
+            Optional<User> existingUserById = repository.findById(user.getId());
+
+            if (existingUserByEmail.isPresent()) {
+                LOGGER.warn("Skipping user with duplicate email: {}", user.getEmail());
+                duplicateUsers.add(user.getEmail());
+                continue;
+            }
+
+            if (existingUserById.isPresent()) {
+                LOGGER.warn("Skipping user with duplicate ID: {}", user.getId());
+                duplicateUsers.add(String.valueOf(user.getId()));
+                continue;
+            }
+
+            savedUsers.add(user);
+        }
+
+        if (!duplicateUsers.isEmpty()) {
+            LOGGER.warn("Found duplicate users: {}", String.join(", ", duplicateUsers));
+        }
+
+        List<User> result = repository.saveAll(savedUsers);
+        LOGGER.info("Successfully saved {} users", result.size());
+
+        return result;
     }
 
     /**
@@ -79,6 +117,7 @@ public class UserService {
      * @return A list of all User entities.
      */
     public List<User> getUsers() {
+        LOGGER.info("Fetching all users");
         return repository.findAll();
     }
 
@@ -90,7 +129,11 @@ public class UserService {
      * @throws UserNotFoundException If the user with the specified ID does not exist.
      */
     public User getUserById(int id) {
-        return repository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " does not exist."));
+        LOGGER.info("Fetching user by ID: {}", id);
+        return repository.findById(id).orElseThrow(() -> {
+            LOGGER.warn("User with ID {} does not exist", id);
+            return new UserNotFoundException("User with ID " + id + " does not exist.");
+        });
     }
 
     /**
@@ -100,6 +143,7 @@ public class UserService {
      * @return A list of users with the specified first name.
      */
     public List<User> getUsersByFirstName(String firstName) {
+        LOGGER.info("Fetching users by first name: {}", firstName);
         return repository.findByFirstName(firstName);
     }
 
@@ -110,6 +154,7 @@ public class UserService {
      * @return A list of users with the specified last name.
      */
     public List<User> getUsersByLastName(String lastName) {
+        LOGGER.info("Fetching users by last name: {}", lastName);
         return repository.findByLastName(lastName);
     }
 
@@ -121,6 +166,7 @@ public class UserService {
      * @return The user entity that matches the specified first and last name.
      */
     public User getUserByFirstAndLastName(String firstName, String lastName) {
+        LOGGER.info("Fetching user by first and last name: {} {}", firstName, lastName);
         return repository.findByFirstNameAndLastName(firstName, lastName);
     }
 
@@ -132,34 +178,50 @@ public class UserService {
      * @throws UserNotFoundException If the user with the specified ID does not exist.
      */
     public User updateUser(User user) {
+        LOGGER.info("Attempting to update user with ID: {}", user.getId());
         Optional<User> existingUser = repository.findById(user.getId());
+
         if (existingUser.isEmpty()) {
+            LOGGER.warn("Failed to update user. User with ID {} does not exist", user.getId());
             throw new UserNotFoundException("User with ID " + user.getId() + " does not exist.");
         }
 
         // Update existing user
         User updatedUser = existingUser.get();
+
         if (user.getFirstName() != null) {
             updatedUser.setFirstName(user.getFirstName());
-        }
-        if (user.getLastName() != null) {
-            updatedUser.setLastName(user.getLastName());
-        }
-        if (user.getEmail() != null) {
-            updatedUser.setEmail(user.getEmail());
-        }
-        if (user.getPassword() != null) {
-            updatedUser.setPassword(user.getPassword());
-        }
-        if (user.getIsActive() != null) {
-            updatedUser.setIsActive(user.getIsActive());
+            LOGGER.debug("Updated first name for user with ID: {}", user.getId());
         }
 
-        return repository.save(updatedUser);
+        if (user.getLastName() != null) {
+            updatedUser.setLastName(user.getLastName());
+            LOGGER.debug("Updated last name for user with ID: {}", user.getId());
+        }
+
+        if (user.getEmail() != null) {
+            updatedUser.setEmail(user.getEmail());
+            LOGGER.debug("Updated email for user with ID: {}", user.getId());
+        }
+
+        if (user.getPassword() != null) {
+            updatedUser.setPassword(user.getPassword());
+            LOGGER.debug("Updated password for user with ID: {}", user.getId());
+        }
+
+        if (user.getIsActive() != null) {
+            updatedUser.setIsActive(user.getIsActive());
+            LOGGER.debug("Updated 'isActive' status for user with ID: {}", user.getId());
+        }
+
+        User savedUser = repository.save(updatedUser);
+        LOGGER.info("Successfully updated user with ID: {}", savedUser.getId());
+
+        return savedUser;
     }
 
     /**
-     * Deactivates a user by setting its 'isActive' flag to "N".
+     * Deactivates a user by setting its 'isActive' flag to the constant value "N".
      *
      * @param id The ID of the user to deactivate.
      * @return A message indicating that the user has been deactivated.
@@ -172,8 +234,9 @@ public class UserService {
         }
 
         User user = existingUser.get();
-        user.setIsActive("N");
+        user.setIsActive(DEACTIVATED_STATUS);
         repository.save(user);
+        LOGGER.info("Successfully deactivated user with ID: {}", id);
         return "User deactivated || " + id;
     }
 }

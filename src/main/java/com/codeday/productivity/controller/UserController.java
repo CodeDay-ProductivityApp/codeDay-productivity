@@ -1,5 +1,7 @@
 package com.codeday.productivity.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.codeday.productivity.entity.User;
 import com.codeday.productivity.exceptions.UserAlreadyExistsException;
 import com.codeday.productivity.service.UserService;
@@ -28,6 +30,8 @@ import java.util.List;
 @RequestMapping("api/v1")
 public class UserController {
 
+    private static final Logger LOGGER = LogManager.getLogger(UserController.class);
+
     private final UserService service;
 
     /**
@@ -48,6 +52,7 @@ public class UserController {
      */
     @PostMapping("/users")
     public User addUser(@RequestBody User user) {
+        LOGGER.info("Attempting to add user {}", user);
         return service.saveUser(user);
     }
 
@@ -59,6 +64,7 @@ public class UserController {
      */
     @PostMapping("/users/batch")
     public List<User> addUsers(@RequestBody List<User> users){
+        LOGGER.info("Attempting to add users in batch {}", users);
         return service.saveUsers(users);
     }
 
@@ -76,6 +82,7 @@ public class UserController {
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName
     ) {
+        LOGGER.info("Finding all users filtered by firstName: {}, lastName: {}", firstName, lastName);
         List<User> users = new ArrayList<>();
 
         if (firstName != null && lastName != null) {
@@ -106,6 +113,7 @@ public class UserController {
      */
     @GetMapping("/users/{id}")
     public User findUserById(@PathVariable int id) {
+        LOGGER.info("Finding user by ID: {}", id);
         return service.getUserById(id);
     }
 
@@ -119,6 +127,7 @@ public class UserController {
     @PutMapping("/users/{id}")
     public User updateUser(@PathVariable int id, @RequestBody User user) {
         user.setId(id);
+        LOGGER.info("Updating user with ID: {} with data: {}", id, user);
         return service.updateUser(user);
     }
 
@@ -130,6 +139,7 @@ public class UserController {
      */
     @PutMapping("/users/{id}/deactivate")
     public String deactivateUser(@PathVariable int id) {
+        LOGGER.info("Deactivating user with ID: {}", id);
         return service.deactivateUser(id);
     }
 
@@ -141,6 +151,7 @@ public class UserController {
      */
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        LOGGER.error("User not found exception: {}", ex.getMessage());
         return ResponseEntity.status(404).body(ex.getMessage());
     }
 
@@ -152,6 +163,7 @@ public class UserController {
      */
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<String> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        LOGGER.error("User already exists exception: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
