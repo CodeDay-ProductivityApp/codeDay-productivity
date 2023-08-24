@@ -62,11 +62,6 @@ public class UserService {
             throw new UserAlreadyExistsException("User with email " + user.getEmail() + " already exists.");
         }
 
-        Optional<User> existingUserById = repository.findById(user.getId());
-        if (existingUserById.isPresent()) {
-            throw new UserAlreadyExistsException("User with ID " + user.getId() + " already exists.");
-        }
-
         return repository.save(user);
     }
 
@@ -84,17 +79,10 @@ public class UserService {
 
         for (User user : users) {
             Optional<User> existingUserByEmail = repository.findByEmail(user.getEmail());
-            Optional<User> existingUserById = repository.findById(user.getId());
 
             if (existingUserByEmail.isPresent()) {
                 LOGGER.warn("Skipping user with duplicate email: {}", user.getEmail());
                 duplicateUsers.add(user.getEmail());
-                continue;
-            }
-
-            if (existingUserById.isPresent()) {
-                LOGGER.warn("Skipping user with duplicate ID: {}", user.getId());
-                duplicateUsers.add(String.valueOf(user.getId()));
                 continue;
             }
 
