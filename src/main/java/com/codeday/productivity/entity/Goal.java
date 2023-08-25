@@ -41,7 +41,7 @@ public class Goal {
     private String isComplete;
 
     @Column(name = "progress")
-    private Integer progress;
+    private Double progress;
 
     @Column(name = "last_updated", columnDefinition = "TIMESTAMP")
     private Instant lastUpdated;

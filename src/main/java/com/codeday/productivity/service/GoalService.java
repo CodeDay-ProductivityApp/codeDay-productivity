@@ -45,9 +45,10 @@ public class GoalService {
         return repository.findByUserAndStartDate(user, startDate);
     }
 
-    public Optional<Goal> getGoal(int id) {
+    public Goal getGoal(int id) {
         LOGGER.info("Getting Goal with ID: {}", id);
-        return repository.findById(id);
+        Optional<Goal> goal = repository.findById(id);
+        return goal.orElse(null);
     }
 
     public Goal updateGoal(int id, Goal goal) {

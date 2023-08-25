@@ -66,7 +66,7 @@ public class GoalController {
 
     // returns null if id does not exist in the database
     @GetMapping("/{id}")
-    public Optional<Goal> getGoalById(@PathVariable int id) {
+    public Goal getGoalById(@PathVariable int id) {
         LOGGER.info("Getting Goal with ID: {}", id);
         return goalService.getGoal(id);
     }
@@ -80,9 +80,9 @@ public class GoalController {
 
     // returns null if id does not exist in the database
     @DeleteMapping("{id}")
-    public Optional<Goal> deleteGoal(@PathVariable int id) {
+    public Goal deleteGoal(@PathVariable int id) {
         LOGGER.info("Deleting Goal with ID: {}", id);
-        Optional<Goal> goal = goalService.getGoal(id);
+        Goal goal = goalService.getGoal(id);
         goalService.deleteGoal(id);
         return goal;
     }
