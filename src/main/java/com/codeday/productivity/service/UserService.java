@@ -2,11 +2,14 @@ package com.codeday.productivity.service;
 
 import com.codeday.productivity.exceptions.UserAlreadyExistsException;
 import com.codeday.productivity.exceptions.UserNotFoundException;
+import com.codeday.productivity.model.CreateUserRequest;
 import com.codeday.productivity.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.codeday.productivity.entity.User;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,7 @@ public class UserService {
 
     private static final Logger LOGGER = LogManager.getLogger(UserService.class);
     private final UserRepository repository;
+    private final BCryptPasswordEncoder passwordEncoder;
     private static final String DEACTIVATED_STATUS = "N";
 
     /**
@@ -43,25 +47,38 @@ public class UserService {
      * @param repository The UserRepository to use for CRUD operations.
      */
     @Autowired
-    public UserService(UserRepository repository) {
+    public UserService(UserRepository repository, BCryptPasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Saves a new user entity to the database.
-     *
-     * @param user The User entity to save.
-     * @return The saved User entity.
-     * @throws UserAlreadyExistsException If a user with the same email or ID already exists.
-     */
-    public User saveUser(User user) {
+    public User saveUser(CreateUserRequest createUserRequest) {
+        LOGGER.info("Validating CreateUserRequest fields");
+
+        if (createUserRequest.getPassword() == null || createUserRequest.getPassword().isEmpty()) {
+            LOGGER.error("Failed to save new user: Password cannot be null or empty");
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+
+        // Convert CreateUserRequest to User
+        User user = new User();
+        user.setFirstName(createUserRequest.getFirstName());
+        user.setLastName(createUserRequest.getLastName());
+        user.setEmail(createUserRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
+
+        // Setting createdOn and lastUpdated
+        Instant now = Instant.now();
+        user.setCreatedOn(now);
+        user.setLastUpdated(now);
+
         LOGGER.info("Attempting to save new user with email: {}", user.getEmail());
         Optional<User> existingUserByEmail = repository.findByEmail(user.getEmail());
 
         if (existingUserByEmail.isPresent()) {
             throw new UserAlreadyExistsException("User with email " + user.getEmail() + " already exists.");
         }
-
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return repository.save(user);
     }
 
@@ -193,8 +210,8 @@ public class UserService {
         }
 
         if (user.getPassword() != null) {
-            updatedUser.setPassword(user.getPassword());
-            LOGGER.debug("Updated password for user with ID: {}", user.getId());
+            updatedUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            LOGGER.debug("Updated and hashed password for user with ID: {}", user.getId());
         }
 
         if (user.getIsActive() != null) {

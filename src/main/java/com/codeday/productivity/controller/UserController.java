@@ -1,5 +1,7 @@
 package com.codeday.productivity.controller;
 
+import com.codeday.productivity.model.CreateUserRequest;
+import com.codeday.productivity.model.UserResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.codeday.productivity.entity.User;
@@ -11,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 /**
  * UserController provides RESTful API endpoints for managing users.
@@ -45,27 +50,86 @@ public class UserController {
     }
 
     /**
-     * Adds a new user to the system.
+     * Adds a new user to the database.
      *
-     * @param user The user to add.
-     * @return The added user.
+     * @param createUserRequest The request payload containing user details.
+     * @return ResponseEntity containing either the created user or an error message.
      */
     @PostMapping("/users")
-    public User addUser(@RequestBody User user) {
-        LOGGER.info("Attempting to add user {}", user);
-        return service.saveUser(user);
+    public ResponseEntity<?> addUser(@RequestBody CreateUserRequest createUserRequest) {
+        try {
+            User user = service.saveUser(createUserRequest);
+            UserResponse userResponse = toUserResponse(user);
+            return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Bad Request: {}", e.getMessage());
+            return new ResponseEntity<>(Collections.singletonMap("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            LOGGER.error("Internal Server Error: {}", e.getMessage());
+            return new ResponseEntity<>(Collections.singletonMap("error", "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
-     * Adds a new {@link User} to the database.
+     * Converts a {@link User} entity to a {@link UserResponse}.
      *
-     * @param users The {@link User} entity to be added.
-     * @return The {@link User} entity that was added.
+     * @param user The User entity.
+     * @return The UserResponse.
+     */
+    private UserResponse toUserResponse(User user) {
+        UserResponse userResponse = new UserResponse();
+        // populate userResponse fields from user
+        userResponse.setId(user.getId());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
+        userResponse.setEmail(user.getEmail());
+        userResponse.setIsActive(user.getIsActive());
+        userResponse.setCreatedOn(user.getCreatedOn());
+        userResponse.setLastUpdated(user.getLastUpdated());
+        return userResponse;
+    }
+
+    /**
+     * Adds multiple new {@link User} entities to the database in a batch operation.
+     *
+     * @param createUserRequests The list of {@link CreateUserRequest} objects to be added.
+     * @return A {@link ResponseEntity} containing either the UserResponses for each user added or an error message.
      */
     @PostMapping("/users/batch")
-    public List<User> addUsers(@RequestBody List<User> users){
-        LOGGER.info("Attempting to add users in batch {}", users);
-        return service.saveUsers(users);
+    public ResponseEntity<?> addUsers(@RequestBody List<CreateUserRequest> createUserRequests){
+        LOGGER.info("Attempting to add users in batch {}", createUserRequests);
+
+        try {
+            // Convert CreateUserRequest objects to User entities
+            List<User> users = createUserRequests.stream()
+                    .map(request -> {
+                        User user = new User();
+                        // Populate user fields using request
+                        user.setFirstName(request.getFirstName());
+                        user.setLastName(request.getLastName());
+                        user.setEmail(request.getEmail());
+                        user.setPassword(request.getPassword());
+                        // Add any other fields as needed
+                        return user;
+                    })
+                    .collect(Collectors.toList());
+
+            // Call the service method that handles duplicates and saves users
+            List<User> savedUsers = service.saveUsers(users);
+
+            // Convert saved User entities to UserResponse objects
+            List<UserResponse> userResponses = savedUsers.stream()
+                    .map(this::toUserResponse)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(userResponses, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Bad Request: {}", e.getMessage());
+            return new ResponseEntity<>(Collections.singletonMap("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            LOGGER.error("Internal Server Error: {}", e.getMessage());
+            return new ResponseEntity<>(Collections.singletonMap("error", "Internal Server Error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -76,7 +140,6 @@ public class UserController {
      * @param lastName The last name to search for (optional).
      * @return A {@link ResponseEntity} containing either the users that match the criteria or an error message.
      */
-
     @GetMapping("/users")
     public ResponseEntity<?> findAllUsers(
             @RequestParam(required = false) String firstName,
