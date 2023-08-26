@@ -52,22 +52,34 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Saves a new user to the database after performing validations and encoding the password.
+     *
+     * @param createUserRequest The request payload containing information to create a new user.
+     * @return The saved User entity.
+     * @throws IllegalArgumentException if the password is null or empty.
+     * @throws UserAlreadyExistsException if a user with the given email already exists.
+     */
     public User saveUser(CreateUserRequest createUserRequest) {
+        // Log the validation attempt
         LOGGER.info("Validating CreateUserRequest fields");
 
+        // Check if the password is null or empty and throw an exception if it is
         if (createUserRequest.getPassword() == null || createUserRequest.getPassword().isEmpty()) {
             LOGGER.error("Failed to save new user: Password cannot be null or empty");
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
 
-        // Convert CreateUserRequest to User
+        // Convert CreateUserRequest to User entity
         User user = new User();
         user.setFirstName(createUserRequest.getFirstName());
         user.setLastName(createUserRequest.getLastName());
         user.setEmail(createUserRequest.getEmail());
+
+        // Encode the password before saving
         user.setPassword(passwordEncoder.encode(createUserRequest.getPassword()));
 
-        // Setting createdOn and lastUpdated
+        // Set timestamps for when the user is created and last updated
         Instant now = Instant.now();
         user.setCreatedOn(now);
         user.setLastUpdated(now);
@@ -76,9 +88,11 @@ public class UserService {
         Optional<User> existingUserByEmail = repository.findByEmail(user.getEmail());
 
         if (existingUserByEmail.isPresent()) {
+            // If the email is already in use, throw an exception
             throw new UserAlreadyExistsException("User with email " + user.getEmail() + " already exists.");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Save the user to the database and return the saved entity
         return repository.save(user);
     }
 
@@ -102,7 +116,7 @@ public class UserService {
                 duplicateUsers.add(user.getEmail());
                 continue;
             }
-
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             savedUsers.add(user);
         }
 
