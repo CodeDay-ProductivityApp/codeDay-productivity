@@ -66,6 +66,10 @@ public class User {
     private Instant lastUpdated;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value="user-reminder")
+    private List<Reminder> reminders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value="user-goal")
     private List<Goal> goals = new ArrayList<>();
 
@@ -86,5 +90,4 @@ public class User {
         this.lastUpdated = Instant.now();
     }
 }
-
 
