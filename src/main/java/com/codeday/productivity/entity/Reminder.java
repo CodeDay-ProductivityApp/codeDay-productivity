@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 public class Reminder {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reminder_sequence")
+    @SequenceGenerator(name = "reminder_sequence", sequenceName = "reminder_sequence", allocationSize = 1)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
