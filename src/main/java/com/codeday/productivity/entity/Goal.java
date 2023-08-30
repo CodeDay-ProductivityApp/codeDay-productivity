@@ -41,7 +41,7 @@ public class Goal {
     private String isComplete;
 
     @Column(name = "progress")
-    private int progress;
+    private Double progress;
 
     @Column(name = "last_updated", columnDefinition = "TIMESTAMP")
     private Instant lastUpdated;
@@ -50,6 +50,3 @@ public class Goal {
     @JoinColumn(name = "user_id")
     private User user;
 }
-
-
-
