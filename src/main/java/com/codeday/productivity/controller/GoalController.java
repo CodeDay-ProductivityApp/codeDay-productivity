@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/v1/users/{userId}/goals")
+@RequestMapping("/api/v1/users/{userId}/goals")
 public class GoalController {
 
     private static final Logger LOGGER = LogManager.getLogger(GoalController.class);

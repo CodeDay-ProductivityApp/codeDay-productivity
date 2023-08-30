@@ -2,6 +2,7 @@ package com.codeday.productivity.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a User entity in the system. This entity is mapped to the "USER_TBL" table
@@ -62,6 +65,10 @@ public class User {
     @LastModifiedDate
     private Instant lastUpdated;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value="user-goal")
+    private List<Goal> goals = new ArrayList<>();
+
     /**
      * This method is called before persisting an object, to ensure 'isActive' is set.
      */
@@ -73,9 +80,11 @@ public class User {
         this.createdOn = Instant.now();
         this.lastUpdated = Instant.now();
     }
+
     @PreUpdate
     public void preUpdate() {
         this.lastUpdated = Instant.now();
     }
 }
+
 
