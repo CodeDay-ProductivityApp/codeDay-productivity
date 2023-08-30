@@ -1,9 +1,13 @@
 package com.codeday.productivity.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
 import java.time.Instant;
 
 /**
@@ -34,25 +38,28 @@ public class User {
     @SequenceGenerator(name = "user_sequence", sequenceName = "user_sequence", allocationSize = 1)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @Column(name = "last_name",nullable = false)
     private String lastName;
 
     @Column(unique = true, nullable = false)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
     @Column(name = "is_active", columnDefinition = "VARCHAR(1) DEFAULT 'Y'")
     private String isActive;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "created_on", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @CreatedDate
     private Instant createdOn;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP")
+    @Column(name = "last_updated", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @LastModifiedDate
     private Instant lastUpdated;
 
     /**
@@ -63,6 +70,12 @@ public class User {
         if (isActive == null) { // check for null
             this.isActive = "Y";
         }
+        this.createdOn = Instant.now();
+        this.lastUpdated = Instant.now();
+    }
+    @PreUpdate
+    public void preUpdate() {
+        this.lastUpdated = Instant.now();
     }
 }
 
