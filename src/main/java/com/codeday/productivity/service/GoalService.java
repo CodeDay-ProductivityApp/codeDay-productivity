@@ -31,9 +31,15 @@ public class GoalService {
         this.repository = repository;
     }
 
-    public Goal saveGoal(Goal goal){
+    public Goal saveGoal(User user, Goal goal){
+        goal.setUser(user);
+        user.getGoals().add(goal);
         LOGGER.info("Saving Goal: {} to the Repo", goal);
         return repository.save(goal);
+    }
+
+    public Goal getGoalById(int goalId) {
+        return repository.findById(goalId).orElseThrow(() -> new RuntimeException("Goal not found"));
     }
 
     public List<Goal> getAllGoalsByUser(User user){
