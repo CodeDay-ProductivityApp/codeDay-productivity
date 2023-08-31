@@ -18,7 +18,7 @@ public class Goal {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "goal_sequence")
     @SequenceGenerator(name = "goal_sequence", sequenceName = "goal_sequence", allocationSize = 1)
-    private int id;
+    private Integer id;
 
     private String title;
 

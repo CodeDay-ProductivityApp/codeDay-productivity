@@ -38,7 +38,7 @@ public class GoalController {
         LOGGER.info("Setting the User to the Goal: {}", goal);
         goal.setUser(user);
         LOGGER.info("Saving the Goal to the Service");
-        return goalService.saveGoal(goal);
+        return goalService.saveGoal(user, goal);
     }
 
     @GetMapping
