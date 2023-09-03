@@ -1,5 +1,7 @@
 package com.codeday.productivity;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,11 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author [Nahom Alemu]
  * @version 1.0
- * @date 26-07-23
+ * @date 22-08-23
  */
 @SpringBootApplication
 @RestController
 public class ProductivityApplication {
+
+	private static final Logger LOGGER = LogManager.getLogger(ProductivityApplication.class);
 
 	/**
 	 * This is the main method that serves as an entry point for the Java application.
@@ -33,6 +37,8 @@ public class ProductivityApplication {
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(ProductivityApplication.class, args);
+
+		LOGGER.info("ProductivityApplication started successfully!");
 	}
 
 }
