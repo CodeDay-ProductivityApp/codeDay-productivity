@@ -35,7 +35,7 @@ public class TaskController {
     @PostMapping
     public Task createTask( @PathVariable Integer goalId, @RequestBody Task task) {
         logger.info("Creating task for goal with id: " + goalId);
-        Goal goal = goalService.getGoalById(goalId);
+        Goal goal = goalService.getGoal(goalId);
         task.setGoal(goal);
         return taskService.saveTaskForUserAndGoal(goal, task);
     }
@@ -57,7 +57,7 @@ public class TaskController {
     @GetMapping
     public List<Task> getAllTasksByGoal(@PathVariable int userId, @PathVariable int goalId) {
         User user = userService.getUserById(userId);
-        Goal goal = goalService.getGoalById(goalId);
+        Goal goal = goalService.getGoal(goalId);
         verifyUserGoalAssociation(user, goal);
         return taskService.getAllTasksByGoal(goal);
     }

@@ -43,7 +43,7 @@ public class TaskControllerTest {
         task.setTitle("Sample Task");
         Goal goal = new Goal();
         goal.setId(1);
-        when(goalService.getGoalById(1)).thenReturn(goal);
+        when(goalService.getGoal(1)).thenReturn(goal);
         when(taskService.saveTaskForUserAndGoal(any(Goal.class), any(Task.class))).thenReturn(task);
 
         mockMvc.perform(post("/v1/users/1/goals/1/tasks")
