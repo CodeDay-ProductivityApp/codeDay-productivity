@@ -46,7 +46,7 @@ public class TaskControllerTest {
         when(goalService.getGoal(1)).thenReturn(goal);
         when(taskService.saveTaskForUserAndGoal(any(Goal.class), any(Task.class))).thenReturn(task);
 
-        mockMvc.perform(post("/v1/users/1/goals/1/tasks")
+        mockMvc.perform(post("/api/v1/users/1/goals/1/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Sample Task\"}"))
                 .andExpect(status().isOk())
@@ -61,7 +61,7 @@ public class TaskControllerTest {
 
         when(taskService.getTaskById(1)).thenReturn(task);
 
-        mockMvc.perform(get("/v1/users/1/goals/1/tasks/1"))
+        mockMvc.perform(get("/api/v1/users/1/goals/1/tasks/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is("Sample Task")));
     }
