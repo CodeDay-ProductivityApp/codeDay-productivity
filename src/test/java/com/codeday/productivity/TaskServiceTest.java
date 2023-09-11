@@ -47,18 +47,18 @@ class TaskServiceTest {
         Task task = new Task();
         task.setId(1);
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.findById(1)).thenReturn(Optional.of(task));
 
-        Task foundTask = taskService.getTaskById(1L);
+        Task foundTask = taskService.getTaskById(1);
 
-        assertEquals(1L, foundTask.getId());
+        assertEquals(1, foundTask.getId());
     }
 
     @Test
     void testGetTaskByIdNotFound() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findById(1)).thenReturn(Optional.empty());
 
-        Task foundTask = taskService.getTaskById(1L);
+        Task foundTask = taskService.getTaskById(1);
 
         assertNull(foundTask);
     }
@@ -85,10 +85,10 @@ class TaskServiceTest {
         Task newTaskData = new Task();
         newTaskData.setTitle("New Title");
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(existingTask));
+        when(taskRepository.findById(1)).thenReturn(Optional.of(existingTask));
         when(taskRepository.save(any(Task.class))).thenReturn(newTaskData);
 
-        Task updatedTask = taskService.updateTask(1L, newTaskData);
+        Task updatedTask = taskService.updateTask(1, newTaskData);
 
         assertEquals("New Title", updatedTask.getTitle());
     }
@@ -98,9 +98,9 @@ class TaskServiceTest {
         Task newTaskData = new Task();
         newTaskData.setTitle("New Title");
 
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findById(1)).thenReturn(Optional.empty());
 
-        Task updatedTask = taskService.updateTask(1L, newTaskData);
+        Task updatedTask = taskService.updateTask(1, newTaskData);
 
         assertNull(updatedTask);
     }

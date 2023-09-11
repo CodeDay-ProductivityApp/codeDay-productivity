@@ -26,12 +26,10 @@ public class TaskService {
     }
 
     // Create a new task
-    public Task createTask(Task task) {
-        return taskRepository.save(task);
-    }
+    public Task createTask(Task task) {return taskRepository.save(task); }
 
     // Get a task by its ID
-    public Task getTaskById(Long taskId) {
+    public Task getTaskById(Integer taskId) {
         Optional<Task> taskOptional = taskRepository.findById(taskId);
         return taskOptional.orElse(null);
     }
@@ -41,30 +39,67 @@ public class TaskService {
         return taskRepository.findByGoal(goal);
     }
 
-    // save a task for a user and goal
+    // Save a task for a user and goal
     public Task saveTaskForUserAndGoal(Goal goal, Task task) {
+        if (goal == null || task == null) {
+            throw new IllegalArgumentException("Neither goal nor task can be null");
+        }
+
+        if (task.getId() != null && taskRepository.existsById(task.getId())) {
+            // The task exists, so we'll update it.
+            return updateTask(task.getId(), task);
+        }
+
+        // If the task doesn't exist, save it as a new task.
         task.setGoal(goal);
         return taskRepository.save(task);
     }
 
     // Update a task by its ID
-    public Task updateTask(Long taskId, Task taskData) {
+    public Task updateTask(Integer taskId, Task taskData) {
         Optional<Task> existingTaskOptional = taskRepository.findById(taskId);
         if (existingTaskOptional.isPresent()) {
             Task existingTask = existingTaskOptional.get();
 
-            existingTask.setTitle(taskData.getTitle());
-            existingTask.setDescription(taskData.getDescription());
-
+            if(taskData.getIsComplete() == null) {
+                taskData.setIsComplete("N");
+            }
+            // Update non-null fields
+            if (taskData.getTitle() != null) {
+                existingTask.setTitle(taskData.getTitle());
+            }
+            if (taskData.getDescription() != null) {
+                existingTask.setDescription(taskData.getDescription());
+            }
+            if (taskData.getStartDate() != null) {
+                existingTask.setStartDate(taskData.getStartDate());
+            }
+            if (taskData.getEndDate() != null) {
+                existingTask.setEndDate(taskData.getEndDate());
+            }
+            if (taskData.getIsComplete() != null) {
+                existingTask.setIsComplete(taskData.getIsComplete());
+            }
+            if (taskData.getProgress() != null) {
+                existingTask.setProgress(taskData.getProgress());
+            }
+            if (taskData.getLastUpdated() != null) {
+                existingTask.setLastUpdated(taskData.getLastUpdated());
+            }
+            if (taskData.getTimeSpent() != null) {
+                existingTask.setTimeSpent(taskData.getTimeSpent());
+            }
             return taskRepository.save(existingTask);
         }
         return null;
     }
 
     // Delete a task by its ID
-    public boolean deleteTask(Long taskId) {
+    public boolean deleteTask(Integer taskId) {
         if (taskRepository.existsById(taskId)) {
             taskRepository.deleteById(taskId);
+
+
             return true;
         }
         return false;

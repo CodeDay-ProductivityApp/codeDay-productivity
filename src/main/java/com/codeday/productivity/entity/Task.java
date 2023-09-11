@@ -16,7 +16,7 @@ public class Task {
 
     @Id
     @GeneratedValue
-    private int id;
+    private Integer id;
 
     @Column(name = "title")
     private String title;

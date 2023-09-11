@@ -59,7 +59,7 @@ public class TaskControllerTest {
         task.setTitle("Sample Task");
         task.setId(1);
 
-        when(taskService.getTaskById(1L)).thenReturn(task);
+        when(taskService.getTaskById(1)).thenReturn(task);
 
         mockMvc.perform(get("/v1/users/1/goals/1/tasks/1"))
                 .andExpect(status().isOk())

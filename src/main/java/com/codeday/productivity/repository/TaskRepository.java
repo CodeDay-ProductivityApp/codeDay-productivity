@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Task, Integer> {
 
     // Finds all tasks by a given progress.
     @Query("SELECT t FROM Task t WHERE t.progress = ?1")

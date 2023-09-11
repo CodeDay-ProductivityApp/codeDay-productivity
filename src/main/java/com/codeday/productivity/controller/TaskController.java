@@ -13,11 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/v1/users/{userId}/goals/{goalId}/tasks")
+@RequestMapping("api/v1/users/{userId}/goals/{goalId}/tasks")
 public class TaskController {
     private static final Logger logger = (Logger) LoggerFactory.getLogger(TaskController.class);
 
@@ -44,7 +46,7 @@ public class TaskController {
 
     // Get task by id
     @GetMapping("/{taskId}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long taskId) {
+    public ResponseEntity<Task> getTaskById(@PathVariable Integer taskId) {
         Task task = taskService.getTaskById(taskId);
         if(task != null) {
             return ResponseEntity.ok(task);
@@ -58,13 +60,12 @@ public class TaskController {
     public List<Task> getAllTasksByGoal(@PathVariable int userId, @PathVariable int goalId) {
         User user = userService.getUserById(userId);
         Goal goal = goalService.getGoal(goalId);
-        verifyUserGoalAssociation(user, goal);
         return taskService.getAllTasksByGoal(goal);
     }
 
     // Update task by id
     @PutMapping("/{taskId}")
-    public ResponseEntity<Task> updateTaskById(@PathVariable Long taskId, @RequestBody Task task) {
+    public ResponseEntity<Task> updateTaskById(@PathVariable Integer taskId, @RequestBody Task task) {
         Task updatedTask = taskService.updateTask(taskId, task);
         if(updatedTask != null) {
             return ResponseEntity.ok(updatedTask);
@@ -75,7 +76,7 @@ public class TaskController {
 
     // Delete task by id
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<Void> deleteTaskById(@PathVariable Long taskId) {
+    public ResponseEntity<Void> deleteTaskById(@PathVariable Integer taskId) {
         if(taskService.deleteTask(taskId)) {
             return ResponseEntity.noContent().build();
         } else {
@@ -83,11 +84,7 @@ public class TaskController {
         }
     }
 
-    private void verifyUserGoalAssociation(User user, Goal goal) {
-        if (goal.getUser().getId() != user.getId()) {
-            throw new RuntimeException("Goal does not belong to the given user");
-        }
-    }
+
 
     @GetMapping("/test")
     public String testEndpoint() {
