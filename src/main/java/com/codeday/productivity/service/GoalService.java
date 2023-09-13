@@ -10,9 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Service
 public class GoalService {
@@ -90,5 +95,35 @@ public class GoalService {
     public void deleteGoal(int id) {
         LOGGER.info("Deleting Goal with ID: {} from Repo", id);
         repository.deleteById(id);
+    }
+
+    public Iterable<Goal> getUserGoalsDueBy(User user, String isComplete, String timeFrame) {
+        LOGGER.info("Getting Goals for User ID: {} marked by isComplete = {}", user.getId(), isComplete);
+        List<Goal> _goals = repository.findByUserAndIsComplete(user, isComplete);
+        LOGGER.info("Computing timeframe {} for Goals Due By", timeFrame);
+        ZonedDateTime _dueBefore = Instant.now().atZone(ZoneId.of("UTC"));
+        switch (timeFrame) {
+            case "today" -> {
+                _dueBefore = _dueBefore.plusDays(1);
+                LOGGER.info("Timeframe: {} is computed for Goals Due By TODAY {}", timeFrame, _dueBefore);
+            }
+            case "week" -> {
+                _dueBefore = _dueBefore.with(TemporalAdjusters.next(DayOfWeek.SUNDAY));
+                LOGGER.info("Timeframe: {} is computed for Goals Due By WEEK {}", timeFrame, _dueBefore);
+            }
+            case "month" -> {
+                _dueBefore = _dueBefore.with(TemporalAdjusters.firstDayOfNextMonth());
+                LOGGER.info("Timeframe: {} is computed for Goals Due By MONTH {}", timeFrame, _dueBefore);
+            }
+            case "year" -> {
+                _dueBefore = _dueBefore.with(TemporalAdjusters.firstDayOfNextYear());
+                LOGGER.info("Timeframe: {} is computed for Goals Due By YEAR {}", timeFrame, _dueBefore);
+            }
+        }
+        Instant dueBefore = _dueBefore.toInstant();
+        LOGGER.info("Filtering Goals by timeframe, also removing any Goal with a null Due Date");
+        Predicate<Goal> condition = goal -> goal.getDueDate() == null || !goal.getDueDate().isBefore(dueBefore);
+        _goals.removeIf(condition);
+        return _goals;
     }
 }

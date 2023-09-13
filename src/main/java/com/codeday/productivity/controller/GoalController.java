@@ -86,4 +86,13 @@ public class GoalController {
         goalService.deleteGoal(id);
         return goal;
     }
+
+    @GetMapping(value = "/due", params = "timeFrame")
+    public Iterable<Goal> getUserGoalsDueBy(@PathVariable int userId, @RequestParam String timeFrame) {
+        LOGGER.info("Getting incomplete Goals for User with ID: {} for the following timeframe: {}",
+                userId, timeFrame);
+        User user = userService.getUserById(userId);
+        String isComplete = "N";
+        return goalService.getUserGoalsDueBy(user, isComplete, timeFrame);
+    }
 }
