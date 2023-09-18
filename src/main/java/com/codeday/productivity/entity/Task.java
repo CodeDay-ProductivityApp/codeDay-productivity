@@ -50,6 +50,11 @@ public class Task {
     private Long timeSpent;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference(value="user-task")
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id", nullable = false)
     @JsonBackReference(value="goal-task")
     private Goal goal;
@@ -68,7 +73,4 @@ public class Task {
         if (isSubTask == null || isSubTask.isBlank()) { this.isSubTask = "N"; }
         if (isComplete == null || isComplete.isBlank()) { this.isComplete = "N"; }
     }
-
 }
-
-
