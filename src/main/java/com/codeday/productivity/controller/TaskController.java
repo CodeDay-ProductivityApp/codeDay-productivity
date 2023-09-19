@@ -60,21 +60,24 @@ public class TaskController {
             @RequestBody Task task) {
         LOGGER.info("Creating sub task for parent task with id: {}, ", id);
         try {
-            LOGGER.info("Getting task with id: {}, ", id);
+            LOGGER.info("Getting task with id: {} goal id {}, user id: {}", id, goalId, userId);
             Task parentTask = taskService.getTaskById(id);
-            LOGGER.info("Getting goal with id: {}, ", goalId);
             Goal goal = goalService.getGoal(goalId);
+            User user = userService.getUserById(userId);
             LOGGER.info("Checking User Goal Task relationship");
             if ((parentTask == null)
                 ||(!Objects.equals(goal.getUser().getId(), userId))
                 || (!Objects.equals(goal.getId(), goalId))) {
-                return ResponseEntity.notFound().build();
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
             }
-            LOGGER.info("Setting Task Goal to Goal ID: {}", goalId);
+            LOGGER.info("Setting Sub Task User to User ID: {}", userId);
+            task.setUser(user);
+            LOGGER.info("Setting Sub Task Goal to Goal ID: {}", goalId);
             task.setGoal(goal);
+            LOGGER.info("Setting Sub Task Parent Task to Task ID: {}", id);
             task.setParentTask(parentTask);
             task.setIsSubTask("Y");
-            LOGGER.info("Save SubTask to Task ID: {}", id);
+            LOGGER.info("Saving Task to repo via service");
             Task subTask = taskService.createTask(task);
             return new ResponseEntity<>(subTask, HttpStatus.CREATED);
         } catch (Exception e) {
