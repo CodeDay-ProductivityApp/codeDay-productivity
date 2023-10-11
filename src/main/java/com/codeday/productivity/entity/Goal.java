@@ -1,12 +1,15 @@
 package com.codeday.productivity.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "GOAL_TBL")
@@ -46,4 +49,19 @@ public class Goal {
     @JoinColumn(name = "user_id")
     @JsonBackReference(value="user-goal")
     private User user;
+
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value="goal-task")
+    private List<Task> tasks = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        if (isComplete == null || isComplete.isBlank()) { this.isComplete = "N"; }
+        this.lastUpdated = Instant.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.lastUpdated = Instant.now();
+    }
 }

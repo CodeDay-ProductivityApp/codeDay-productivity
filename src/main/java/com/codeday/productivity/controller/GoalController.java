@@ -7,12 +7,13 @@ import com.codeday.productivity.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users/{userId}/goals")
@@ -32,67 +33,110 @@ public class GoalController {
     }
 
     @PostMapping
-    public Goal createGoal(@PathVariable int userId, @RequestBody Goal goal) {
-        LOGGER.info("Creating a Goal for User ID {}, getting User", userId);
-        User user = userService.getUserById(userId);
-        LOGGER.info("Setting the User to the Goal: {}", goal);
-        goal.setUser(user);
-        LOGGER.info("Saving the Goal to the Service");
-        return goalService.saveGoal(user, goal);
+    public ResponseEntity<Goal> createGoal(@PathVariable Integer userId, @RequestBody Goal goal) {
+        LOGGER.info("Creating a Goal: {} for User ID {}, getting User", goal, userId);
+        try {
+            User user = userService.getUserById(userId);
+            LOGGER.info("Saving the Goal to the Service");
+            Goal _goal = goalService.saveGoal(user, goal);
+            return new ResponseEntity<>(_goal, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping
-    public List<Goal> getAllGoalsByUser(@PathVariable int userId) {
+    public ResponseEntity<List<Goal>> getAllGoalsByUser(@PathVariable Integer userId) {
         LOGGER.info("Getting all Goal for User ID {}, getting User", userId);
-        User user = userService.getUserById(userId);
-        LOGGER.info("Returning all Goals for the User from the Service");
-        return goalService.getAllGoalsByUser(user);
+        try {
+            User user = userService.getUserById(userId);
+            LOGGER.info("Returning all Goals for the User from the Service");
+            List<Goal> goals = goalService.getAllGoalsByUser(user);
+            return new ResponseEntity<>(goals, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/complete/{isComplete}")
-    public List<Goal> getAllGoalsByUserAndCompletion(@PathVariable int userId, @PathVariable String isComplete) {
+    public ResponseEntity<List<Goal>> getAllGoalsByUserAndCompletion(
+            @PathVariable Integer userId, @PathVariable String isComplete
+    ) {
         LOGGER.info("Getting all Goal by Completion Status {} for User ID {}, getting User",
                 isComplete, userId);
-        User user = userService.getUserById(userId);
-        LOGGER.info("Returning all Goals for the User from the Service");
-        return goalService.getAllGoalsByUserAndCompletion(user, isComplete);
+        try {
+            User user = userService.getUserById(userId);
+            LOGGER.info("Returning all Goals for the User from the Service");
+            List<Goal> goals = goalService.getAllGoalsByUserAndCompletion(user, isComplete);
+            return new ResponseEntity<>(goals, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/date/{startDate}")
-    public List<Goal> getAllGoalsByUserAndStartDate(@PathVariable int userId, @PathVariable Instant startDate){
-        User user = userService.getUserById(userId);
-        return goalService.getAllGoalsByUserAndStartDate(user, startDate);
+    public ResponseEntity<List<Goal>> getAllGoalsByUserAndStartDate(
+            @PathVariable Integer userId, @PathVariable Instant startDate
+    ) {
+        try {
+            User user = userService.getUserById(userId);
+            List<Goal> goals =  goalService.getAllGoalsByUserAndStartDate(user, startDate);
+            return new ResponseEntity<>(goals, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // returns null if id does not exist in the database
     @GetMapping("/{id}")
-    public Goal getGoalById(@PathVariable int id) {
-        LOGGER.info("Getting Goal with ID: {}", id);
-        return goalService.getGoal(id);
+    public ResponseEntity<Goal> getGoalById(@PathVariable Integer id) {
+        try {
+            LOGGER.info("Getting Goal with ID: {}", id);
+            Goal goal = goalService.getGoal(id);
+            return new ResponseEntity<>(goal, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // throws error status 404 if goal id does not exist in the database
     @PutMapping("/{id}")
-    public Optional<Goal> updateGoalById(@PathVariable int id, @RequestBody Goal goal) {
+    public ResponseEntity<Goal> updateGoalById(@PathVariable Integer id, @RequestBody Goal goal) {
         LOGGER.info("Updating Goal with ID: {} with Goal data: {}", id, goal);
-        return Optional.ofNullable(goalService.updateGoal(id, goal));
+        try {
+            Goal _goal = goalService.updateGoal(id, goal);
+            return new ResponseEntity<>(_goal, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // returns null if id does not exist in the database
     @DeleteMapping("{id}")
-    public Goal deleteGoal(@PathVariable int id) {
+    public ResponseEntity<Goal> deleteGoal(@PathVariable Integer id) {
         LOGGER.info("Deleting Goal with ID: {}", id);
-        Goal goal = goalService.getGoal(id);
-        goalService.deleteGoal(id);
-        return goal;
+        try {
+            Goal goal = goalService.getGoal(id);
+            goalService.deleteGoal(id);
+            return new ResponseEntity<>(goal, HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping(value = "/due", params = "timeFrame")
-    public Iterable<Goal> getUserGoalsDueBy(@PathVariable int userId, @RequestParam String timeFrame) {
+    public ResponseEntity<Iterable<Goal>> getUserGoalsDueBy(
+            @PathVariable Integer userId, @RequestParam String timeFrame
+    ) {
         LOGGER.info("Getting incomplete Goals for User with ID: {} for the following timeframe: {}",
                 userId, timeFrame);
-        User user = userService.getUserById(userId);
-        String isComplete = "N";
-        return goalService.getUserGoalsDueBy(user, isComplete, timeFrame);
+        try {
+            User user = userService.getUserById(userId);
+            String isComplete = "N";
+            Iterable<Goal> goals = goalService.getUserGoalsDueBy(user, isComplete, timeFrame);
+            return new ResponseEntity<>(goals, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
